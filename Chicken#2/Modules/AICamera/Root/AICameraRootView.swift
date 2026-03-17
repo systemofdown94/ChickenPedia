@@ -1,14 +1,16 @@
 import SwiftUI
+import PhotosUI
 
 struct AICameraRootView: View {
-    
+
     @StateObject private var viewModel = CameraViewModel()
-    
+    @State private var showGallery = false
+
     var body: some View {
         ZStack {
             Color.mainBG
                 .ignoresSafeArea()
-            
+
             VStack {
                 switch viewModel.state {
                     case .help:
@@ -49,8 +51,23 @@ struct AICameraRootView: View {
     private var cameraView: some View {
         ZStack {
             CameraPreview(session: viewModel.cameraService.session)
-            
+
             PhotoFrameView()
+        }
+        .overlay(alignment: .topTrailing) {
+            Button {
+                showGallery = true
+            } label: {
+                Image(systemName: "photo.on.rectangle")
+                    .font(.system(size: 22))
+                    .foregroundStyle(.white)
+                    .padding(12)
+            }
+        }
+        .sheet(isPresented: $showGallery) {
+            GalleryPicker { image in
+                viewModel.selectImage(image)
+            }
         }
         .onAppear { viewModel.startSession() }
         .onDisappear { viewModel.stopSession() }

@@ -1,10 +1,11 @@
 import UIKit
+import PhotosUI
 import Combine
 
 @MainActor
 final class CameraViewModel: ObservableObject {
-    
-    @Published private(set) var state: CameraState = .help
+
+    @Published var state: CameraState = .help
     @Published private(set) var capturedImage: UIImage?
     
     let cameraService = CameraService()
@@ -40,11 +41,16 @@ final class CameraViewModel: ObservableObject {
     func takePicture() {
         Task {
             let capturedImage = await cameraService.takePicture()
-            
+
             await MainActor.run {
                 self.capturedImage = capturedImage
                 self.state = .preview
             }
         }
+    }
+
+    func selectImage(_ image: UIImage) {
+        capturedImage = image
+        state = .preview
     }
 }
