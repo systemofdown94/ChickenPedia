@@ -65,7 +65,7 @@ struct AICameraRootView: View {
                     case .setup:
                         viewModel.takePicture()
                     case .preview:
-                        viewModel.state = .scanning
+                        viewModel.startScanning()
                     case .scanning:
                         break
                 }

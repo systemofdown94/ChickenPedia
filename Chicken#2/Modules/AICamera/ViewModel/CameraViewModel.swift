@@ -4,6 +4,8 @@ import Combine
 @MainActor
 final class CameraViewModel: ObservableObject {
     
+    private let geminiService = GeminiVisionService.shared
+    
     @Published private(set) var state: CameraState = .help
     @Published private(set) var capturedImage: UIImage?
     
@@ -46,5 +48,9 @@ final class CameraViewModel: ObservableObject {
                 self.state = .preview
             }
         }
+    }
+    
+    func startScanning() {
+        state = .scanning
     }
 }
