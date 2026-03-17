@@ -17,6 +17,8 @@ struct AICameraRootView: View {
                         cameraView
                     case .preview:
                         previewImage
+                    case .scanning:
+                        scanningView
                 }
             }
             .padding(.bottom, 80)
@@ -63,7 +65,9 @@ struct AICameraRootView: View {
                     case .setup:
                         viewModel.takePicture()
                     case .preview:
-                        print("")
+                        viewModel.state = .scanning
+                    case .scanning:
+                        break
                 }
             } label: {
                 let title = switch viewModel.state {
@@ -73,6 +77,8 @@ struct AICameraRootView: View {
                         "Take Photo"
                     case .preview:
                         "Scan Result"
+                    case .scanning:
+                        ""
                 }
                 
                 Text(title)
@@ -90,6 +96,24 @@ struct AICameraRootView: View {
     private var previewImage: some View {
         Image(uiImage: viewModel.capturedImage ?? UIImage())
             .resizeCrop()
+    }
+
+    private var scanningView: some View {
+        ZStack {
+            Image(uiImage: viewModel.capturedImage ?? UIImage())
+                .resizeCrop()
+
+            VStack {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(1.5)
+
+                Text("Scanning processing ...")
+                    .font(.interFont(size: 16, weight: .medium))
+                    .foregroundStyle(.white)
+                    .padding(.top, 12)
+            }
+        }
     }
 }
 
