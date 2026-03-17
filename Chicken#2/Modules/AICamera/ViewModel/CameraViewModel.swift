@@ -1,10 +1,14 @@
 import UIKit
+import PhotosUI
 import Combine
 
 @MainActor
 final class CameraViewModel: ObservableObject {
     
     private let geminiService = GeminiVisionService.shared
+    
+    @Published var fetchedResult: ChickenBreedResponse?
+    @Published var showAlert = false
     
     @Published private(set) var state: CameraState = .help
     @Published private(set) var capturedImage: UIImage?
@@ -50,7 +54,36 @@ final class CameraViewModel: ObservableObject {
         }
     }
     
+    func selectImage(_ image: UIImage) {
+        capturedImage = image
+        state = .preview
+    }
+    
     func startScanning() {
         state = .scanning
+        
+        Task { [weak self] in
+            guard let self,
+                  let capturedImage else { return }
+            
+            do {
+                let result = try await self.geminiService.analyzeImage(capturedImage)
+                
+                await MainActor.run {
+                    self.fetchedResult = result
+                }
+            } catch {
+                print(error.localizedDescription)
+                
+                await MainActor.run {
+                    self.state = .preview
+                    self.showAlert = true 
+                }
+            }
+        }
+    }
+    
+    func resetCamera() {
+        capturedImage = nil
     }
 }

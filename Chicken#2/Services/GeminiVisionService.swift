@@ -20,12 +20,35 @@ final class GeminiVisionService {
     
     private init() {}
     
-    func analyzeImage(_ image: UIImage, prompt: String = "What is in this image?") async throws -> String {
+    func analyzeImage(_ image: UIImage) async throws -> ChickenBreedResponse? {
         let processedImage = resizeImage(image, maxDimension: 1024)
         
         guard let jpegData = processedImage.jpegData(compressionQuality: 0.7) else {
             throw VisionError.imageEncodingFailed
         }
+        
+        let prompt =
+"""
+Analyze the image and determine whether it contains a chicken.
+
+If the image does NOT contain a chicken, return an empty object.
+
+If it contains a chicken breed, return ONLY valid JSON in the following format:
+
+{
+  "breed": "string",
+  "description": "string",
+  "lifeExpectancy": number,
+  "avgPrice": number
+}
+
+Rules:
+- Return ONLY JSON
+- Do not include explanations
+- Do not include markdown
+- lifeExpectancy is in years
+- avgPrice is in USD
+"""
         
         let base64 = jpegData.base64EncodedString()
         let dataURL = "data:image/jpeg;base64,\(base64)"
@@ -86,18 +109,53 @@ final class GeminiVisionService {
         }
     }
     
-    private func parseResponse(_ data: Data) throws -> String {
-        
+    private func parseResponse(_ data: Data) throws -> ChickenBreedResponse? {
+        do {
+            guard
+                let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                let choices = json["choices"] as? [[String: Any]],
+                let message = choices.first?["message"] as? [String: Any],
+                let content = message["content"] as? String
+            else {
+                throw VisionError.invalidResponse
+            }
+            
+            if content.trimmingCharacters(in: .whitespacesAndNewlines) == "{}" {
+                return nil
+            }
+            
+            guard let jsonData = content.data(using: .utf8) else {
+                throw VisionError.invalidResponse
+            }
+            
+            return try JSONDecoder().decode(ChickenBreedResponse.self, from: jsonData)
+            
+        } catch {
+            
+            print("❌ Failed to parse Gemini response")
+            
+            if let pretty = prettyPrintJSON(data) {
+                print("📦 Raw API response:")
+                print(pretty)
+            } else {
+                print("📦 Raw API response (string):")
+                print(String(data: data, encoding: .utf8) ?? "Unable to decode data")
+            }
+            
+            throw error
+        }
+    }
+    
+    private func prettyPrintJSON(_ data: Data) -> String? {
         guard
-            let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let choices = json["choices"] as? [[String: Any]],
-            let message = choices.first?["message"] as? [String: Any],
-            let content = message["content"] as? String
+            let object = try? JSONSerialization.jsonObject(with: data),
+            let prettyData = try? JSONSerialization.data(withJSONObject: object, options: [.prettyPrinted]),
+            let prettyString = String(data: prettyData, encoding: .utf8)
         else {
-            throw VisionError.invalidResponse
+            return nil
         }
         
-        return content
+        return prettyString
     }
 }
 
