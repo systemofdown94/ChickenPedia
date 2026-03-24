@@ -9,6 +9,8 @@ struct AICameraResultView: View {
     @State var model: ChickenUIResponseModel
     
     @State private var isFavorite = false
+    @State private var showErrorAlert = false
+    @State private var shouldSave = true
     
     var body: some View {
         ZStack {
@@ -33,11 +35,19 @@ struct AICameraResultView: View {
         .onAppear {
             MainTabBarAppearanceManager.instance.hasTabBar = false
             isFavorite = model.isFavorite
+            
+            guard let response = model.response,
+               response.breed != "N/A" else {
+                showErrorAlert = true
+                shouldSave = false
+                return 
+            }
         }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
                     viewModel.save(model)
+                    dismiss()
                 } label: {
                     Image(systemName: "chevron.backward")
                         .font(.system(size: 24, weight: .medium))
@@ -50,6 +60,7 @@ struct AICameraResultView: View {
                 dismiss()
             }
         }
+        .alert("The error occured or there is no chicken on the picture", isPresented: $showErrorAlert) {}
     }
  
     private var backgroundImage: some View {

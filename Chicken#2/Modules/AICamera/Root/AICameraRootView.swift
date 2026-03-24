@@ -30,6 +30,24 @@ struct AICameraRootView: View {
                 if viewModel.state != .scanning {
                     button
                 }
+                
+                if viewModel.state == .preview {
+                    VStack {
+                        HStack {
+                            Button {
+                                viewModel.resetCamera()
+                            } label: {
+                                Image(systemName: "chevron.backward")
+                                    .font(.system(size: 22, weight: .medium))
+                                    .foregroundStyle(.white)
+                            }
+                            .frame(width: 44, height: 44)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding()
+                    }
+                    .frame(maxHeight: .infinity, alignment: .top)
+                }
             }
             .alert("Something went wrong or there is no chicken on the picture. Try again.", isPresented: $viewModel.showAlert) {}
             .alert("The camera access is required. Open settings?", isPresented: $viewModel.showPermissionAlert) {
@@ -109,6 +127,8 @@ struct AICameraRootView: View {
     private var button: some View {
         VStack {
             Button {
+                HapticManager.shared.impact()
+                
                 switch viewModel.state {
                     case .help:
                         viewModel.setupCamera()

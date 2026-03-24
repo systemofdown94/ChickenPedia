@@ -42,6 +42,7 @@ struct MainTabRootView: View {
             HStack {
                 ForEach(TabPage.allCases) { page in
                     Button {
+                        HapticManager.shared.impact()
                         self.page = page
                     } label: {
                         VStack {

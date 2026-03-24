@@ -13,7 +13,7 @@ struct DocumentView: View {
                 Text("Privacy Policy")
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .font(.title)
-                    
+                
                 Button {
                     dismiss()
                 } label: {
@@ -38,7 +38,6 @@ struct BlackWindow: UIViewRepresentable {
     }
     
     func makeUIView(context: Context) -> WKWebView {
-        
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .default()
         config.allowsInlineMediaPlayback = true

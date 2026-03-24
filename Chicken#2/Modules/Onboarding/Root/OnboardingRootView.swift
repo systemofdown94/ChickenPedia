@@ -33,6 +33,8 @@ struct OnboardingRootView: View {
                     }
                     
                     Button {
+                        HapticManager.shared.impact()
+                        
                         withAnimation {
                             if page == .page4 {
                                 onboardingEnd = true
