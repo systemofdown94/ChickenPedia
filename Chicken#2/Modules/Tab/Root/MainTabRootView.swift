@@ -11,23 +11,26 @@ struct MainTabRootView: View {
     }
     
     var body: some View {
-        ZStack {
-            TabView(selection: $page) {
-                ChickensRootView()
-                    .tag(TabPage.chickens)
-                    .toolbar(.hidden, for: .tabBar)
+        GeometryReader { _ in
+            ZStack {
+                TabView(selection: $page) {
+                    ChickensRootView()
+                        .tag(TabPage.chickens)
+                        .toolbar(.hidden, for: .tabBar)
+                    
+                    AICameraRootView()
+                        .tag(TabPage.camera)
+                        .toolbar(.hidden, for: .tabBar)
+                    
+                    SettingsRootView()
+                        .tag(TabPage.settings)
+                        .toolbar(.hidden, for: .tabBar)
+                }
                 
-                AICameraRootView()
-                    .tag(TabPage.camera)
-                    .toolbar(.hidden, for: .tabBar)
-                
-                SettingsRootView()
-                    .tag(TabPage.settings)
-                    .toolbar(.hidden, for: .tabBar)
+                tabBar
             }
-            
-            tabBar
         }
+        .ignoresSafeArea(.keyboard)
     }
     
     private var tabBar: some View {

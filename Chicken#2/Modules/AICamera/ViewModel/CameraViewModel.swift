@@ -7,8 +7,9 @@ final class CameraViewModel: ObservableObject {
     
     private let geminiService = GeminiVisionService.shared
     
-    @Published var fetchedResult: ChickenBreedResponse?
+    @Published var navPath: [CameraScreen] = []
     @Published var showAlert = false
+    @Published var showPermissionAlert = false
     
     @Published private(set) var state: CameraState = .help
     @Published private(set) var capturedImage: UIImage?
@@ -21,6 +22,7 @@ final class CameraViewModel: ObservableObject {
             
             guard granted else {
                 state = .help
+                showPermissionAlert = true
                 return
             }
             
@@ -70,14 +72,19 @@ final class CameraViewModel: ObservableObject {
                 let result = try await self.geminiService.analyzeImage(capturedImage)
                 
                 await MainActor.run {
-                    self.fetchedResult = result
+                    self.navPath.append(.result(ChickenUIResponseModel(
+                        id: UUID(),
+                        image: capturedImage,
+                        response: result,
+                        isFavorite: false
+                    )))
                 }
             } catch {
                 print(error.localizedDescription)
                 
                 await MainActor.run {
                     self.state = .preview
-                    self.showAlert = true 
+                    self.showAlert = true
                 }
             }
         }
@@ -85,5 +92,6 @@ final class CameraViewModel: ObservableObject {
     
     func resetCamera() {
         capturedImage = nil
+        state = .setup
     }
 }

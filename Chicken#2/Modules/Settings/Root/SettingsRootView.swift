@@ -24,6 +24,7 @@ struct SettingsRootView: View {
                 VStack(spacing: 32) {
                     Button {
                         showPrivacy = true
+                        MainTabBarAppearanceManager.instance.hasTabBar = false
                     } label: {
                         HStack {
                             Image(systemName: "shield.pattern.checkered")
@@ -97,9 +98,27 @@ struct SettingsRootView: View {
             .frame(maxHeight: .infinity, alignment: .topLeading)
             
             if showPrivacy {
-                if let url = URL(string: "") {
-                    DocumentView(url: url)
-                        .ignoresSafeArea(edges: .bottom)
+                if let url = URL(string: "https://chickenscanner.online/privacy-policy") {
+                    VStack(spacing: 0) {
+                        HStack {
+                            Button {
+                                showPrivacy = false
+                                MainTabBarAppearanceManager.instance.hasTabBar = true
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 18, weight: .medium))
+                                    .foregroundStyle(.white.opacity(0.5))
+                            }
+                            .frame(width: 44, height: 44)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                            
+                        BlackWindow(url: url, isHidden: .constant(false))
+                            .ignoresSafeArea(edges: .bottom)
+                    }
+                    .background(
+                        Color.mainBG
+                    )
                 }
             }
         }

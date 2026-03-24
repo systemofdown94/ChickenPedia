@@ -39,7 +39,9 @@ If it contains a chicken breed, return ONLY valid JSON in the following format:
   "breed": "string",
   "description": "string",
   "lifeExpectancy": number,
-  "avgPrice": number
+  "avgPrice": number,
+  "layingRate": number,
+  "rarity": string
 }
 
 Rules:
@@ -48,6 +50,7 @@ Rules:
 - Do not include markdown
 - lifeExpectancy is in years
 - avgPrice is in USD
+- laying rate in number of egg/week
 """
         
         let base64 = jpegData.base64EncodedString()

@@ -4,34 +4,62 @@ import PhotosUI
 struct AICameraRootView: View {
 
     @StateObject private var viewModel = CameraViewModel()
+    
     @State private var showGallery = false
 
     var body: some View {
-        ZStack {
-            Color.mainBG
-                .ignoresSafeArea()
-
-            VStack {
-                switch viewModel.state {
-                    case .help:
-                        helpView
-                    case .setup:
-                        cameraView
-                    case .preview:
-                        previewImage
-                    case .scanning:
-                        scanningView
+        NavigationStack(path: $viewModel.navPath) {
+            ZStack {
+                Color.mainBG
+                    .ignoresSafeArea()
+                
+                VStack {
+                    switch viewModel.state {
+                        case .help:
+                            helpView
+                        case .setup:
+                            cameraView
+                        case .preview:
+                            previewImage
+                        case .scanning:
+                            scanningView
+                    }
+                }
+                .padding(.bottom, 80)
+                
+                if viewModel.state != .scanning {
+                    button
                 }
             }
-            .padding(.bottom, 80)
-            
-            if viewModel.state != .scanning {
-                button
+            .alert("Something went wrong or there is no chicken on the picture. Try again.", isPresented: $viewModel.showAlert) {}
+            .alert("The camera access is required. Open settings?", isPresented: $viewModel.showPermissionAlert) {
+                Button("Yes") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        if UIApplication.shared.canOpenURL(url) {
+                            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                        }
+                    }
+                }
+                
+                Button("Cancel") {}
             }
-        }
-        .alert("Something went wrong. Try again.", isPresented: $viewModel.showAlert) {}
-        .fullScreenCover(item: $viewModel.fetchedResult) { result in
-            
+            .navigationDestination(for: CameraScreen.self) { screen in
+                switch screen {
+                    case .result(let result):
+                        AICameraResultView(model: result)
+                            .onDisappear {
+                                viewModel.resetCamera()
+                            }
+                }
+            }
+            .onAppear {
+                MainTabBarAppearanceManager.instance.hasTabBar = true
+            }
+            .sheet(isPresented: $showGallery) {
+                GalleryPicker { image in
+                    viewModel.selectImage(image)
+                }
+            }
         }
     }
     
@@ -57,22 +85,21 @@ struct AICameraRootView: View {
     private var cameraView: some View {
         ZStack {
             CameraPreview(session: viewModel.cameraService.session)
-
             PhotoFrameView()
         }
         .overlay(alignment: .topTrailing) {
             Button {
                 showGallery = true
             } label: {
-                Image(systemName: "photo.on.rectangle")
-                    .font(.system(size: 22))
-                    .foregroundStyle(.white)
+                Circle()
+                    .frame(width: 48, height: 48)
+                    .foregroundStyle(.black.opacity(0.5))
+                    .overlay {
+                        Image(systemName: "photo.on.rectangle")
+                            .font(.system(size: 22))
+                            .foregroundStyle(.white)
+                    }
                     .padding(12)
-            }
-        }
-        .sheet(isPresented: $showGallery) {
-            GalleryPicker { image in
-                viewModel.selectImage(image)
             }
         }
         .onAppear { viewModel.startSession() }
@@ -123,12 +150,12 @@ struct AICameraRootView: View {
 
     private var scanningView: some View {
         ZStack {
-            Color.black.opacity(0.3)
-                .ignoresSafeArea()
-            
             Image(uiImage: viewModel.capturedImage ?? UIImage())
                 .resizeCrop()
 
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
+            
             VStack {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
