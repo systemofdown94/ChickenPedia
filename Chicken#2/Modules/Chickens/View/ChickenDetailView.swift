@@ -65,6 +65,25 @@ struct ChickenDetailView: View {
                     .cornerRadius(100)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            
+            HStack {
+                Image(systemName: "star")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(.yellow)
+                
+                Text(chicken.rating.formatted() + " -")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(.white)
+                
+                Text(chicken.ratingName)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(.white)
+            }
+            .frame(height: 25)
+            .padding(.horizontal)
+            .background(Color(hex: "#474747"))
+            .cornerRadius(100)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
     

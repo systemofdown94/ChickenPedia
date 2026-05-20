@@ -90,6 +90,27 @@ enum ChickenBreed: Int, Identifiable, CaseIterable, Codable {
         }
     }
     
+    var rating: Double {
+        let seed = Double((rawValue * 73 + 19) % 151)
+        let normalized = seed / 150.0
+        
+        return (3.5 + normalized * 1.5)
+            .rounded(toPlaces: 1)
+    }
+    
+    var ratingName: String {
+        switch rating {
+            case 4.5...5:
+                return "Highly Recommended"
+                
+            case 4.0..<4.5:
+                return "Moderate Difficulty"
+                
+            default:
+                return "Challenging to Raise"
+        }
+    }
+    
     var icon: ImageResource {
         switch self {
             case .leghorn:
@@ -356,5 +377,12 @@ enum ChickenBreed: Int, Identifiable, CaseIterable, Codable {
             case .veryRare:
                 Color(hex: "#FFB74D")
         }
+    }
+}
+
+extension Double {
+    func rounded(toPlaces places: Int) -> Double {
+        let divisor = pow(10.0, Double(places))
+        return (self * divisor).rounded() / divisor
     }
 }

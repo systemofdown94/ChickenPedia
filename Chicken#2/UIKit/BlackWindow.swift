@@ -47,6 +47,18 @@ struct BlackWindow: UIViewRepresentable {
         
         let webView = WKWebView(frame: .zero, configuration: config)
         
+        webView.scrollView.showsVerticalScrollIndicator = false
+        webView.scrollView.showsHorizontalScrollIndicator = false
+        
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(
+            context.coordinator,
+            action: #selector(Coordinator.handleRefresh),
+            for: .valueChanged
+        )
+
+        webView.scrollView.refreshControl = refreshControl
+        
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
         webView.allowsBackForwardNavigationGestures = true
@@ -89,6 +101,8 @@ struct BlackWindow: UIViewRepresentable {
         
         
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            webView.scrollView.refreshControl?.endRefreshing()
+            
             if parent.isHidden {
                 parent.isHidden = false
             }
@@ -134,6 +148,10 @@ struct BlackWindow: UIViewRepresentable {
             popupWebView = nil
         }
         
+        @objc
+        func handleRefresh(_ sender: UIRefreshControl) {
+            mainWebView?.reload()
+        }
         
         private func present(_ controller: UIViewController) {
             UIApplication.shared
