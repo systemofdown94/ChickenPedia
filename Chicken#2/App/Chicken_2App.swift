@@ -6,11 +6,61 @@ enum States {
     case root
 }
 
+import Foundation
+import Network
+import Combine
+
+final class ConnectionManager: ObservableObject {
+
+    static let shared = ConnectionManager()
+    
+    private let monitor = NWPathMonitor()
+    
+    @Published var isConnected: Bool = true
+    
+    private init() {
+        checkInternetConnection()
+    }
+    
+    private func checkInternetConnection() {
+#if targetEnvironment(simulator)
+        return
+        #else
+        monitor.pathUpdateHandler = { [weak self] path in
+            guard let self else { return }
+            
+            DispatchQueue.main.async {
+                if path.status == .satisfied {
+                    self.isConnected = true
+                } else if path.status == .unsatisfied {
+                    self.isConnected = false
+                }
+            }
+        }
+        
+        monitor.start(queue: .global())
+        #endif
+    }
+}
+
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        let _ = ConnectionManager.shared
+        return true
+    }
+}
+
+
 @main
 struct Chicken_2App: App {
     
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
     @AppStorage("onboardingEnd") var onboardingEnd = false
     @AppStorage("magicHasLocked") var magicHasLocked = false
+    
+    @ObservedObject private var connectionManager = ConnectionManager.shared
     
     @State private var state: States = .wait
     @State private var saltName: String?
@@ -72,6 +122,12 @@ struct Chicken_2App: App {
     }
     
     private func initKitchen() {
+        guard connectionManager.isConnected else {
+            state = .root
+            isShowSplash = false
+            return
+        }
+        
         guard saltName == nil else {
             state = .magic
             return
@@ -79,7 +135,7 @@ struct Chicken_2App: App {
         
         guard !magicHasLocked else {
             state = .root
-            isShowSplash = false 
+            isShowSplash = false
             return
         }
         
