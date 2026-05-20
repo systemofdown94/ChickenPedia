@@ -122,12 +122,6 @@ struct Chicken_2App: App {
     }
     
     private func initKitchen() {
-        guard connectionManager.isConnected else {
-            state = .root
-            isShowSplash = false
-            return
-        }
-        
         guard saltName == nil else {
             state = .magic
             return
@@ -143,6 +137,12 @@ struct Chicken_2App: App {
     }
     
     private func waitAnsambleIfNeeded() {
+        guard connectionManager.isConnected else {
+            state = .root
+            isShowSplash = false
+            return
+        }
+        
         guard let url = URL(string: "https://app.shickenbook.shop/VRFQgtwX") else {
             self.state = .root
             self.isShowSplash = false
